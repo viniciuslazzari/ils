@@ -68,7 +68,7 @@ def random_route_point(r: list):
   return r[index], index
 
 def local_search(s: list, k: int, y: int, m: list) -> list:
-  print("Local search")
+  # print("Local search")
 
   bks = deepcopy(s)
   ps = deepcopy(s)
@@ -189,20 +189,44 @@ def perturbe(s: list, k: int, m: list) -> list:
 
   return ns
 
+def perturbe_2(s: list, k: int) -> list:
+  ns = deepcopy(s)
+
+  r1, r2 = choose_two_routes(k)
+
+  p1, i1 = random_route_point(ns[r1])
+  p2, i2 = random_route_point(ns[r2])
+
+  ns[r1].remove(p1)
+  ns[r2].remove(p2)
+
+  ns[r1].insert(i1, p2)
+  ns[r2].insert(i2, p1)
+
+  return ns
+
 def ils(k: int, n: int, m: list, x: int, y: int) -> list:
   s = get_initial_solution(k, n)
   s, min = local_search(s, k, y, m)
   p = 0
 
-  while p < x:
-    ns = perturbe(s, k, m)
-    ns, n_min = local_search(ns, k, y, m)
+  while True:
+    perturbe_2(s, k)
+    ns, n_min = local_search(s, k, y, m)
 
     if n_min < min:
       s = ns
       min = n_min
-      p = 0
-    else:
-      p += 1
+
+  # while p < x:
+  #   ns = perturbe(s, k, m)
+  #   ns, n_min = local_search(ns, k, y, m)
+
+  #   if n_min < min:
+  #     s = ns
+  #     min = n_min
+  #     p = 0
+  #   else:
+  #     p += 1
 
   return s, min
