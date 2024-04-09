@@ -6,10 +6,10 @@ def main(instance: str, x: int, y: int):
   k, n, points = read_input(instance)
   m = build_distance_matrix(n, points)
   
-  s, min = ils(k, n, m, x, y)
+  s, min_distance = ils(k, n, m, x, y)
 
-  print(s)
-  print(min)
+  # print(s)
+  print(min_distance)
 
 if __name__ == "__main__":
   instance = sys.argv[1]

@@ -1,6 +1,6 @@
 import random
 from copy import deepcopy
-from utils import get_distance
+from utils import get_distance, save_solution, distribute
 
 def get_initial_solution(k: int, n: int) -> list:
   """
@@ -17,12 +17,18 @@ def get_initial_solution(k: int, n: int) -> list:
   r = []
 
   temp = [i for i in range(1, n)]
+  distribution = distribute(n, k)
 
   for i in range(k):
     r.append([])
 
   for i in range(1, n):
     collector = random.randint(0, k - 1)
+
+    while distribution[collector] == 0:
+      collector = random.randint(0, k - 1)
+
+    distribution[collector] -= 1
     point = random.choice(temp)
 
     r[collector].append(point)
@@ -79,7 +85,7 @@ def local_search(s: list, k: int, y: int, m: list) -> list:
     ps = deepcopy(bks)
     first = False
 
-    print("Min: %.2f" % min)
+    # print("Min: %.2f" % min)
     
     for i in range(y):
       ts = deepcopy(ps)
@@ -112,7 +118,7 @@ def find_max_gap_route(a: list, m: list) -> tuple[int, int]:
   max_gap = 0
   index = 0
 
-  for i in range(1, n - 1):
+  for i in range(1, n - 2):
     distance = get_distance(a[i], a[i + 1], m)
 
     if distance > max_gap:
@@ -124,7 +130,7 @@ def find_max_gap_route(a: list, m: list) -> tuple[int, int]:
 def find_max_gap(r: list, m: list):
   max_gap = 0
   route = 0
-  index = 0
+  index = 1
 
   for i in range(len(r)):
     gap, p = find_max_gap_route(r[i], m)
@@ -161,9 +167,17 @@ def find_point_in_routes(s: list, p: int) -> tuple[int, int]:
       if s[i][j] == p:
         return i, j
 
-  return 0, 0
+  return 0, 1
 
-def perturbe(s: list, k: int, m: list) -> list:
+def mutate(s: list, k: int, m: list) -> list:
+  mode = random.randint(0, 1)
+
+  if mode == 0:
+    return mutate_gap(s, k, m)
+  else:
+    return mutate_swap(s, k)
+
+def mutate_gap(s: list, k: int, m: list) -> list:
   ns = deepcopy(s)
 
   gap, dr, di = find_max_gap(ns, m)
@@ -184,12 +198,9 @@ def perturbe(s: list, k: int, m: list) -> list:
     ns[fr].insert(fi, dp)
     ns[dr].insert(di, fp)
 
-  print("Perturbing local minimum")
-  print("Changed point %d in route %d -> point %d in route %d, removing gap of %.2f" % (dp, dr, fp, fr, gap))
-
   return ns
 
-def perturbe_2(s: list, k: int) -> list:
+def mutate_swap(s: list, k: int) -> list:
   ns = deepcopy(s)
 
   r1, r2 = choose_two_routes(k)
@@ -201,32 +212,22 @@ def perturbe_2(s: list, k: int) -> list:
   ns[r2].remove(p2)
 
   ns[r1].insert(i1, p2)
-  ns[r2].insert(i2, p1)
+  ns[r2].insert(i2, p1)  
 
   return ns
 
 def ils(k: int, n: int, m: list, x: int, y: int) -> list:
   s = get_initial_solution(k, n)
   s, min = local_search(s, k, y, m)
-  p = 0
 
   while True:
-    perturbe_2(s, k)
-    ns, n_min = local_search(s, k, y, m)
+    ns = mutate_gap(s, k, m)
+    ns, n_min = local_search(ns, k, y, m)
 
     if n_min < min:
       s = ns
       min = n_min
-
-  # while p < x:
-  #   ns = perturbe(s, k, m)
-  #   ns, n_min = local_search(ns, k, y, m)
-
-  #   if n_min < min:
-  #     s = ns
-  #     min = n_min
-  #     p = 0
-  #   else:
-  #     p += 1
+      save_solution(s)
+      print(min)
 
   return s, min

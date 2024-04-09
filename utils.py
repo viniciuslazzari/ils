@@ -29,3 +29,15 @@ def euclidian_distance(a: Point, b: Point) -> float:
   """
     
   return math.sqrt(math.pow(b.x - a.x, 2) + math.pow(b.y - a.y, 2))
+
+def save_solution(s: list) -> bool:
+  with open('result.txt', 'w') as f:
+    for route in s:
+      for point in route:
+        f.write(str(point) + " ")
+
+      f.write("\n")
+
+def distribute(items: int, lists: int) -> list:
+  base, extra = divmod(items, lists)
+  return [base + (i < extra) for i in range(lists)]
